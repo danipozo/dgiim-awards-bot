@@ -30,10 +30,10 @@ class MessageCounter(telepot.helper.UserHandler):
 
         numberedCands = zip(self.candidates[self.currentCategory], [
             i for i in range(1, len(self.candidates[self.currentCategory]) + 1)])
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=x, callback_data=str(n))
+        keyboard = InlineKeyboardMarkup(inline_keyboard=
+            [[InlineKeyboardButton(text=x, callback_data=str(n))]
              for x, n in numberedCands],
-        ])
+        )
 
         bot.sendMessage(chat_id,
                         'Categoria: ' + self.categories[self.currentCategory],
