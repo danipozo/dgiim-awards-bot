@@ -6,6 +6,7 @@ from telepot.loop import MessageLoop
 from telepot.namedtuple import InlineKeyboardMarkup, InlineKeyboardButton
 from telepot.delegate import (
     per_chat_id, create_open, pave_event_space, include_callback_query_chat_id)
+import json
 
 
 class MessageCounter(telepot.helper.UserHandler):
@@ -15,28 +16,31 @@ class MessageCounter(telepot.helper.UserHandler):
         self._count = 0
         self.currentCategory = 0
         self.votes = []
+        self.voter = ""
 
         self.candidates = [
             ['Test1', 'Test2'],
             ['Test1', 'Test2', 'Test3']
         ]
-        self.categories = ['Categoria 1', 'Categoria 2']
+        self.categories = ['Categoría 1', 'Categoría 2']
 
     def on_chat_message(self, msg):
         content_type, chat_type, chat_id = telepot.glance(msg)
+        self.voter = chat_id
 
         if self.currentCategory == len(self.categories):
             return
 
         numberedCands = zip(self.candidates[self.currentCategory], [
             i for i in range(1, len(self.candidates[self.currentCategory]) + 1)])
+        
         keyboard = InlineKeyboardMarkup(inline_keyboard=
             [[InlineKeyboardButton(text=x, callback_data=str(n))]
              for x, n in numberedCands],
         )
 
         bot.sendMessage(chat_id,
-                        'Categoria: ' + self.categories[self.currentCategory],
+                        'Categoría: ' + self.categories[self.currentCategory],
                         reply_markup=keyboard)
 
         self.currentCategory += 1
@@ -46,7 +50,14 @@ class MessageCounter(telepot.helper.UserHandler):
             msg, flavor='callback_query')
 
         if self.currentCategory != len(self.categories):
+            self.votes.append({ str(self.categories[self.currentCategory-1]) : self.candidates[self.currentCategory-1][int(query_data)-1] })
+            print(self.votes)
             bot.sendMessage(from_id, 'Dale a  /siguiente')
+        else:
+            print(self.voter)
+            with open(str(self.voter), 'w') as f:
+                json.dump(self.votes, f)
+            
         bot.answerCallbackQuery(query_id, text='Got it')
 
 
